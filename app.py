@@ -124,7 +124,7 @@ with tab1:
     with c_map:
         st.subheader("خريطة دبابيسي التفاعلية")
         # مركز الخريطة: ساوثهامبتون
-        m = folium.Map(location=[50.9097, -1.4044], zoom_start=8, tiles="CartoDB positron")
+        m = folium.Map(location=[50.9097, -1.4044], zoom_start=8)
         
         # دبوس ساوثهامبتون (المركز الأساسي)
         folium.Marker(
