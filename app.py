@@ -3,11 +3,69 @@ import folium
 from streamlit_folium import st_folium
 import json
 import os
-from datetime import datetime, time, timedelta
+import math
+import requests
+from datetime import datetime, time, timedelta, date
 
 st.set_page_config(page_title="Southampton & Europe Travel Atlas", page_icon="🌍", layout="wide")
 
-DATA_FILE = "travel_atlas_en.json"
+DATA_FILE = "travel_atlas_v3.json"
+SOU_LAT, SOU_LON = 50.9097, -1.4044
+
+# --- Helper Functions (Haversine, Live Weather, Auto-Geocoder) ---
+def calc_distance_km(lat1, lon1, lat2, lon2):
+    R = 6371.0
+    phi1, phi2 = math.radians(lat1), math.radians(lat2)
+    dphi = math.radians(lat2 - lat1)
+    dlambda = math.radians(lon2 - lon1)
+    a = math.sin(dphi / 2)**2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2)**2
+    return round(R * (2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))))
+
+@st.cache_data(ttl=1800)
+def get_live_weather_and_sunset(lat, lon):
+    try:
+        url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,wind_speed_10m,precipitation&daily=sunset,precipitation_probability_max&timezone=auto"
+        r = requests.get(url, timeout=4).json()
+        temp = r["current"]["temperature_2m"]
+        wind = r["current"]["wind_speed_10m"]
+        rain_prob = r["daily"]["precipitation_probability_max"][0]
+        sunset_iso = r["daily"]["sunset"][0]
+        sunset_time = sunset_iso.split("T")[1] if "T" in sunset_iso else "18:00"
+        return {"temp": temp, "wind": wind, "rain_prob": rain_prob, "sunset": sunset_time, "ok": True}
+    except:
+        return {"ok": False}
+
+@st.cache_data(ttl=86400)
+def geocode_place(query):
+    try:
+        url = "https://nominatim.openstreetmap.org/search"
+        headers = {"User-Agent": "SouthamptonStudentTravelAtlas/1.0"}
+        r = requests.get(url, params={"q": query, "format": "json", "limit": 1}, headers=headers, timeout=5).json()
+        if r:
+            lat, lon = float(r[0]["lat"]), float(r[0]["lon"])
+            dist = calc_distance_km(SOU_LAT, SOU_LON, lat, lon)
+            return {"lat": lat, "lon": lon, "dist": dist, "display_name": r[0]["display_name"], "ok": True}
+    except:
+        pass
+    return {"ok": False}
+
+def calc_schengen_rolling(trips, ref_date=None):
+    if ref_date is None:
+        ref_date = date.today()
+    window_start = ref_date - timedelta(days=179)
+    used_days = set()
+    for t in trips:
+        try:
+            s = datetime.strptime(t["start"], "%Y-%m-%d").date()
+            e = datetime.strptime(t["end"], "%Y-%m-%d").date()
+            curr = s
+            while curr <= e:
+                if window_start <= curr <= ref_date:
+                    used_days.add(curr)
+                curr += timedelta(days=1)
+        except:
+            pass
+    return len(used_days), window_start
 
 DEFAULT_DATA = {
     "places": [
@@ -20,6 +78,7 @@ DEFAULT_DATA = {
             "lat": 51.0045,
             "lon": -2.1983,
             "distance_km": 68,
+            "rating": 5,
             "paid_gbp": 14.50,
             "saved_gbp": 12.00,
             "saving_hack": "Railcard 1/3 off + £2 Bus Cap",
@@ -32,6 +91,7 @@ DEFAULT_DATA = {
             "ticket_info": "🆓 Free entry 24/7 to Gold Hill",
             "mood": "😌 Peaceful rural vibes",
             "notes": "Train to Gillingham (Dorset) then local bus. Buses run roughly every hour, so watch the return clock closely.",
+            "image_url": "https://images.unsplash.com/photo-1590001155093-a3c66ab0c3ff?auto=format&fit=crop&w=800&q=80",
             "checkpoints": [
                 {"task": "Train from Southampton Central to Gillingham", "done": True},
                 {"task": "Catch Bus X2/B3 outside station to Shaftesbury", "done": True},
@@ -47,19 +107,21 @@ DEFAULT_DATA = {
             "status": "wishlist",
             "lat": 50.9086,
             "lon": -0.1072,
-            "distance_km": 115,
+            "distance_km": 92,
+            "rating": 5,
             "paid_gbp": 20.70,
             "saved_gbp": 18.00,
-            "saving_hack": "Off-Peak Day Return to Lewes + short Single (Brighton-Hassocks) instead of 2 expensive Singles!",
+            "saving_hack": "Off-Peak Day Return to Lewes + short Single (Brighton-Hassocks)",
             "dep_time": "08:30",
             "transit_mins": 132,
             "activity_hours": 4.5,
             "last_return": "21:02",
-            "last_transit_note": "🚨 Sunset at 18:05! Last direct Brighton->Southampton train at 21:02",
+            "last_transit_note": "🚨 Watch sunset time! Last direct Brighton->Southampton train at 21:02",
             "payment_rule": "🟢 Use Railcard on App | Emergency Breeze Bus 79 at Ditchling Beacon (£2 Apple Pay)",
             "ticket_info": "🆓 Free trail - ⚠️ NO water/shops along the 17km ridge!",
             "mood": "🤩 Excited for the ridge views",
             "notes": "Exit Hassocks Platform 2 -> Jack & Jill Windmills -> Ditchling Beacon (248m peak) -> Descend into Lewes town.",
+            "image_url": "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80",
             "checkpoints": [
                 {"task": "Pack 2L water, lunch & waterproof jacket in Southampton", "done": False},
                 {"task": "08:30 Southern train (change at Angmering/Brighton) to Hassocks", "done": False},
@@ -76,7 +138,8 @@ DEFAULT_DATA = {
             "status": "wishlist",
             "lat": 50.6212,
             "lon": -2.2768,
-            "distance_km": 75,
+            "distance_km": 69,
+            "rating": 5,
             "paid_gbp": 16.20,
             "saved_gbp": 8.50,
             "saving_hack": "SWR Railcard Return to Wool + £2 Morebus Cap",
@@ -89,6 +152,7 @@ DEFAULT_DATA = {
             "ticket_info": "🆓 Free beach & coastal path access",
             "mood": "🌊 Coastal adventure",
             "notes": "Best visited on a clear sunny day before sunset.",
+            "image_url": "https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&w=800&q=80",
             "checkpoints": [
                 {"task": "Direct train from Southampton Central to Wool Station", "done": False},
                 {"task": "Take Morebus 30 from Wool Station to Durdle Door", "done": False},
@@ -101,7 +165,10 @@ DEFAULT_DATA = {
         {"date": "2026-10-16", "trip": "Shaftesbury", "item": "Return Bus X2", "amount_gbp": 4.00, "category": "Transit 🚌"},
         {"date": "2026-10-16", "trip": "Shaftesbury", "item": "Coffee & Pastry", "amount_gbp": 5.20, "category": "Food & Coffee ☕"}
     ],
-    "schengen_days_used": 12
+    "schengen_trips": [
+        {"country": "Italy (Milan & Como)", "start": "2026-06-10", "end": "2026-06-16"},
+        {"country": "Poland (Krakow)", "start": "2026-08-20", "end": "2026-08-24"}
+    ]
 }
 
 def load_data():
@@ -117,57 +184,79 @@ def save_data(data):
 
 data = load_data()
 
+# ----------------- Sidebar: 1-Click Backup & Restore -----------------
+with st.sidebar:
+    st.header("⚙️ Atlas Controls & Backup")
+    st.caption("Download your data anytime so your memories are 100% safe.")
+    json_bytes = json.dumps(data, ensure_ascii=False, indent=2).encode("utf-8")
+    st.download_button("💾 Download Full Backup (JSON)", data=json_bytes, file_name="my_travel_backup.json", mime="application/json")
+    
+    uploaded_backup = st.file_uploader("📂 Restore from Backup", type=["json"])
+    if uploaded_backup is not None:
+        if st.button("🔄 Restore Data Now"):
+            data = json.load(uploaded_backup)
+            save_data(data)
+            st.success("Backup restored!")
+            st.rerun()
+
 # ----------------- Top Metrics Dashboard -----------------
 st.title("🌍 Smart Travel Planner & Memory Atlas")
-st.caption("Base Hub: Southampton, UK ⚓ | Live Trip Builder, Curfew Calculator & Expense Tracker")
+st.caption("Base Hub: Southampton, UK ⚓ | Live Weather, Curfew Calculator, Airport Matrix & Schengen Tracker")
 
 visited_places = [p for p in data["places"] if p["status"] == "visited"]
 total_km = sum(p.get("distance_km", 0) * 2 for p in visited_places)
 total_paid = sum(e.get("amount_gbp", 0) for e in data["expenses"])
 total_saved = sum(p.get("saved_gbp", 0) for p in data["places"])
-schengen_left = 90 - data.get("schengen_days_used", 0)
+used_schengen, win_start = calc_schengen_rolling(data.get("schengen_trips", []))
+schengen_left = max(0, 90 - used_schengen)
 
 m1, m2, m3, m4 = st.columns(4)
 m1.metric("📍 Visited / Total Pins", f"{len(visited_places)} / {len(data['places'])}", "From Southampton Hub")
 m2.metric("💰 Total Spent", f"£{total_paid:.2f}", f"Smart Saved: £{total_saved:.2f} 🔥")
 m3.metric("📏 Distance Covered", f"{total_km} km", "Round-trip from SOU")
-m4.metric("🛂 Schengen Quota (90/180)", f"{schengen_left} Days Left", f"{data.get('schengen_days_used', 0)} days used")
+m4.metric("🛂 Schengen (Rolling 180d)", f"{schengen_left} Days Left", f"{used_schengen}/90 used since {win_start}")
 
 st.divider()
 
 # ----------------- Main Navigation Tabs -----------------
-tab1, tab2, tab3, tab4 = st.tabs([
-    "🗺️ Map & Live Trip Planner", 
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    "🗺️ Map, Live Weather & Planner", 
     "✈️ UK Airport Matrix", 
     "💸 Expense Tracker", 
-    "➕ Add New Trip / Quick Import"
+    "🛂 Schengen 90/180 Tracker",
+    "➕ Smart Auto-Add / AI Import"
 ])
 
-# === TAB 1: Map & Interactive Planner ===
+# === TAB 1: Map, Live Weather & Interactive Planner ===
 with tab1:
-    col_map, col_plan = st.columns([1.2, 1.3])
+    col_map, col_plan = st.columns([1.15, 1.35])
     
     with col_map:
         st.subheader("📍 Interactive Pin Map")
-        # Clean OpenStreetMap tiles (No API key watermark!)
-        m = folium.Map(location=[50.9097, -1.4044], zoom_start=8)
+        f_status = st.radio("Filter Map Pins:", ["All Pins", "🟢 Visited Only", "🟡 Wishlist Only"], horizontal=True)
         
+        m = folium.Map(location=[SOU_LAT, SOU_LON], zoom_start=8)
         folium.Marker(
-            [50.9097, -1.4044],
+            [SOU_LAT, SOU_LON],
             popup="🏠 Southampton Base Hub",
             tooltip="🏠 Southampton (Home Base)",
             icon=folium.Icon(color="black", icon="home")
         ).add_to(m)
 
         for p in data["places"]:
+            if f_status == "🟢 Visited Only" and p["status"] != "visited":
+                continue
+            if f_status == "🟡 Wishlist Only" and p["status"] == "visited":
+                continue
             color = "green" if p["status"] == "visited" else ("orange" if p["status"] == "food" else "blue")
             status_tag = "VISITED" if p["status"] == "visited" else "WISHLIST"
+            stars = "⭐" * int(p.get("rating", 5))
             popup_html = f"""
             <div style="font-family:sans-serif; width:210px;">
                 <b>{p['name']}</b> <span style="color:gray;">({status_tag})</span><br>
-                <small>{p['category']}</small><hr style="margin:5px 0;">
+                <span>{stars}</span> | <small>{p['distance_km']} km from SOU</small><hr style="margin:5px 0;">
                 🚨 <b>Last Return:</b> {p['last_return']}<br>
-                💳 <b>Payment:</b> {p['payment_rule']}<br>
+                💳 <b>Pay:</b> {p['payment_rule']}<br>
                 💰 <b>Saved:</b> £{p.get('saved_gbp', 0)}
             </div>
             """
@@ -178,42 +267,51 @@ with tab1:
                 icon=folium.Icon(color=color, icon="info-sign")
             ).add_to(m)
             
-        st_folium(m, width=600, height=500)
+        st_folium(m, width=580, height=520)
 
     with col_plan:
-        st.subheader("🛠️ Interactive Trip Planner & Survival Guide")
-        
         place_names = [p["name"] for p in data["places"]]
-        selected_name = st.selectbox("Select Destination to Plan or Edit:", place_names)
+        selected_name = st.selectbox("🎯 Select Destination to Plan, Check Live Weather or Edit:", place_names)
         p_idx = next(i for i, p in enumerate(data["places"]) if p["name"] == selected_name)
         place = data["places"][p_idx]
         
-        # Status Toggle Button
-        status_col1, status_col2 = st.columns([2, 1])
-        badge = "🟢 VISITED" if place["status"] == "visited" else "🟡 WISHLIST (PLANNED)"
-        status_col1.markdown(f"### {place['name']} `{badge}`")
-        if status_col2.button("🔄 Toggle Visited / Wishlist"):
+        # Header + Status Toggle
+        sc1, sc2 = st.columns([2.2, 1])
+        badge = "🟢 VISITED" if place["status"] == "visited" else "🟡 WISHLIST"
+        stars_str = "⭐" * int(place.get("rating", 5))
+        sc1.markdown(f"### {place['name']} `{badge}` {stars_str}")
+        if sc2.button("🔄 Toggle Visited / Wishlist"):
             place["status"] = "visited" if place["status"] != "visited" else "wishlist"
             save_data(data)
             st.rerun()
 
+        # --- LIVE WEATHER & SUNSET RADAR ---
+        weather = get_live_weather_and_sunset(place["lat"], place["lon"])
+        if weather.get("ok"):
+            wc1, wc2, wc3, wc4 = st.columns(4)
+            wc1.metric("🌡️ Live Temp", f"{weather['temp']} °C")
+            wc2.metric("💨 Wind Speed", f"{weather['wind']} km/h")
+            wc3.metric("🌧️ Rain Chance", f"{weather['rain_prob']}%")
+            wc4.metric("🌅 Sunset Today", f"{weather['sunset']}")
+            if st.button(f"🌅 Set Curfew to Sunset ({weather['sunset']})"):
+                place["last_return"] = weather["sunset"]
+                save_data(data)
+                st.rerun()
+
         # --- LIVE REVERSE TIMELINE CALCULATOR ---
         st.markdown("#### ⏱️ 1. Live Day-Trip Timeline & Curfew Calculator")
         tc1, tc2, tc3, tc4 = st.columns(4)
-        
         try:
             default_dep = datetime.strptime(place.get("dep_time", "08:30"), "%H:%M").time()
             default_last = datetime.strptime(place.get("last_return", "18:00"), "%H:%M").time()
         except:
-            default_dep = time(8, 30)
-            default_last = time(18, 0)
+            default_dep, default_last = time(8, 30), time(18, 0)
 
-        dep_t = tc1.time_input("Leave Southampton:", value=default_dep, key=f"dep_{p_idx}")
-        trans_m = tc2.number_input("Transit (mins):", value=int(place.get("transit_mins", 90)), step=5, key=f"tr_{p_idx}")
-        act_h = tc3.number_input("Hike/Explore (hrs):", value=float(place.get("activity_hours", 4.0)), step=0.5, key=f"ac_{p_idx}")
-        last_ret_t = tc4.time_input("🚨 Last Return Bus/Train:", value=default_last, key=f"lr_{p_idx}")
+        dep_t = tc1.time_input("Leave SOU:", value=default_dep, key=f"dep_{p_idx}")
+        trans_m = tc2.number_input("Transit (m):", value=int(place.get("transit_mins", 90)), step=5, key=f"tr_{p_idx}")
+        act_h = tc3.number_input("Activity (h):", value=float(place.get("activity_hours", 4.0)), step=0.5, key=f"ac_{p_idx}")
+        last_ret_t = tc4.time_input("🚨 Last Return:", value=default_last, key=f"lr_{p_idx}")
 
-        # Calculate Exact Schedule
         base_dt = datetime.combine(datetime.today(), dep_t)
         arrival_dt = base_dt + timedelta(minutes=trans_m)
         finish_act_dt = arrival_dt + timedelta(hours=act_h)
@@ -221,17 +319,17 @@ with tab1:
         buffer_mins = int((last_ret_dt - finish_act_dt).total_seconds() / 60)
 
         st.markdown(
-            f"**🚆 Arrive at Destination:** `{arrival_dt.strftime('%H:%M')}` ➡️ "
-            f"**🏁 Finish Hike/Activity:** `{finish_act_dt.strftime('%H:%M')}` ➡️ "
-            f"**🚨 Last Return Transit:** `{last_ret_dt.strftime('%H:%M')}`"
+            f"**🚆 Arrive:** `{arrival_dt.strftime('%H:%M')}` ➡️ "
+            f"**🏁 Finish Activity:** `{finish_act_dt.strftime('%H:%M')}` ➡️ "
+            f"**🚨 Last Return:** `{last_ret_dt.strftime('%H:%M')}`"
         )
         
         if buffer_mins >= 60:
-            st.success(f"✅ **Safe Schedule!** You have **{buffer_mins // 60} hr {buffer_mins % 60} mins** of spare buffer time (for coffee/food/delays) before the last return at {last_ret_dt.strftime('%H:%M')}.")
+            st.success(f"✅ **Safe Schedule!** You have **{buffer_mins // 60}h {buffer_mins % 60}m** spare buffer time before the last return ({last_ret_dt.strftime('%H:%M')}).")
         elif 0 <= buffer_mins < 60:
-            st.warning(f"⚠️ **Tight Schedule!** Only **{buffer_mins} mins** spare before the last return transit! Consider leaving Southampton earlier.")
+            st.warning(f"⚠️ **Tight Schedule!** Only **{buffer_mins} mins** spare before last return!")
         else:
-            st.error(f"❌ **DANGER!** You will finish at {finish_act_dt.strftime('%H:%M')}, missing the last return ({last_ret_dt.strftime('%H:%M')}) by **{abs(buffer_mins)} mins**! Leave earlier!")
+            st.error(f"❌ **DANGER!** You finish at {finish_act_dt.strftime('%H:%M')}, missing the last return by **{abs(buffer_mins)} mins**!")
 
         # --- SURVIVAL & TICKETING CARDS ---
         st.markdown("#### 🛡️ 2. Local Transit Rules & Smart Ticketing")
@@ -241,44 +339,56 @@ with tab1:
 
         # --- INTERACTIVE CHECKPOINTS ---
         st.markdown("#### ☑️ 3. Step-by-Step Route Checkpoints")
-        checkpoints = place.get("checkpoints", [])
-        for c_i, cp in enumerate(checkpoints):
+        for c_i, cp in enumerate(place.get("checkpoints", [])):
             checked = st.checkbox(cp["task"], value=cp["done"], key=f"cp_{p_idx}_{c_i}")
             if checked != cp["done"]:
                 place["checkpoints"][c_i]["done"] = checked
                 save_data(data)
 
-        new_cp = st.text_input("Add a new step/checkpoint to this trip:", key=f"new_cp_{p_idx}", placeholder="e.g., Grab pastry at Lewes Bakery before train")
-        if st.button("➕ Add Step", key=f"btn_cp_{p_idx}") and new_cp:
+        c_add1, c_add2 = st.columns([3, 1])
+        new_cp = c_add1.text_input("New step:", key=f"new_cp_{p_idx}", label_visibility="collapsed", placeholder="Add a checkpoint (e.g., Grab coffee in Lewes)...")
+        if c_add2.button("➕ Add Step", key=f"btn_cp_{p_idx}") and new_cp:
             place.setdefault("checkpoints", []).append({"task": new_cp, "done": False})
             save_data(data)
             st.rerun()
 
-        # --- EDIT TRIP DETAILS EXPANDER ---
-        with st.expander("✏️ Edit Trip Prices, Rules & Notes"):
-            new_paid = st.number_input("Actual Paid (£):", value=float(place.get("paid_gbp", 0.0)), step=0.5)
-            new_saved = st.number_input("Amount Saved (£):", value=float(place.get("saved_gbp", 0.0)), step=0.5)
+        # --- PHOTO & MEMORY JOURNAL ---
+        with st.expander("📸 Photo, Memories & Edit Trip Details"):
+            if place.get("image_url"):
+                st.image(place["image_url"], caption=f"{place['name']} — {place.get('mood', '')}", use_container_width=True)
+            st.write(f"**💭 Memory / Notes:** {place.get('notes', '')}")
+            st.divider()
+            
+            e1, e2, e3 = st.columns(3)
+            new_paid = e1.number_input("Paid (£):", value=float(place.get("paid_gbp", 0.0)), step=0.5)
+            new_saved = e2.number_input("Saved (£):", value=float(place.get("saved_gbp", 0.0)), step=0.5)
+            new_rating = e3.slider("Rating (Stars):", 1, 5, int(place.get("rating", 5)))
+            
+            new_img = st.text_input("Photo URL (or paste image link):", value=place.get("image_url", ""))
             new_hack = st.text_input("Saving Hack Used:", value=place.get("saving_hack", ""))
             new_last_note = st.text_input("Curfew / Last Bus Warning:", value=place.get("last_transit_note", ""))
-            new_pay_rule = st.text_input("Payment Rule (Cash/Card/App):", value=place.get("payment_rule", ""))
-            new_notes = st.text_area("Personal Notes & Memories:", value=place.get("notes", ""))
+            new_pay_rule = st.text_input("Payment Rule:", value=place.get("payment_rule", ""))
+            new_notes = st.text_area("Personal Journal & Memories:", value=place.get("notes", ""))
             
             if st.button("💾 Save All Changes", key=f"save_{p_idx}"):
-                place["dep_time"] = dep_t.strftime("%H:%M")
-                place["transit_mins"] = trans_m
-                place["activity_hours"] = act_h
-                place["last_return"] = last_ret_t.strftime("%H:%M")
-                place["paid_gbp"] = new_paid
-                place["saved_gbp"] = new_saved
-                place["saving_hack"] = new_hack
-                place["last_transit_note"] = new_last_note
-                place["payment_rule"] = new_pay_rule
-                place["notes"] = new_notes
+                place.update({
+                    "dep_time": dep_t.strftime("%H:%M"),
+                    "transit_mins": trans_m,
+                    "activity_hours": act_h,
+                    "last_return": last_ret_t.strftime("%H:%M"),
+                    "paid_gbp": new_paid,
+                    "saved_gbp": new_saved,
+                    "rating": new_rating,
+                    "image_url": new_img,
+                    "saving_hack": new_hack,
+                    "last_transit_note": new_last_note,
+                    "payment_rule": new_pay_rule,
+                    "notes": new_notes
+                })
                 save_data(data)
-                st.success("Trip updated successfully!")
+                st.success("Trip updated!")
                 st.rerun()
 
-        # --- EXTERNAL RESEARCH LINKS ---
         q_clean = place["name"].split("(")[0].strip().replace(" ", "+")
         l1, l2, l3 = st.columns(3)
         l1.link_button("🚆 Google Maps Transit", f"https://www.google.com/maps/dir/Southampton+Central/{q_clean}/")
@@ -288,35 +398,25 @@ with tab1:
 # === TAB 2: Door-to-Door UK Airport Comparison ===
 with tab2:
     st.subheader("✈️ Door-to-Door Airport Cost Calculator (From Southampton)")
-    st.write("Compare total cost (**Flight + Return Train/Coach from Southampton**) across UK airports so cheap flights don't trick you with expensive London transit!")
-    
     dest = st.text_input("🌍 Target European Destination:", "Milan")
-    
     airports = [
         {"name": "Bournemouth (BOH)", "code": "BOH", "transit": 8.0, "time": "45 mins (Train + Bus)", "flight": 22.0},
         {"name": "Southampton (SOU)", "code": "SOU", "transit": 5.5, "time": "10 mins (Direct Train)", "flight": 65.0},
         {"name": "Bristol (BRS) ⭐ Hidden Gem", "code": "BRS", "transit": 24.0, "time": "1h 45m (Direct Train + A1 Flyer)", "flight": 19.0},
         {"name": "London Gatwick (LGW)", "code": "LGW", "transit": 26.0, "time": "2h 00m (Train / Coach)", "flight": 28.0},
         {"name": "London Heathrow (LHR)", "code": "LHR", "transit": 28.0, "time": "1h 45m (National Express)", "flight": 55.0},
-        {"name": "London Stansted / Luton (STN/LTN)", "code": "STN", "transit": 42.0, "time": "3h 15m (Train + Tube + Express)", "flight": 14.0},
-        {"name": "Birmingham (BHX) ⭐ Direct Train", "code": "BHX", "transit": 34.0, "time": "2h 30m (Direct CrossCountry Train!)", "flight": 20.0},
+        {"name": "London Stansted / Luton (STN/LTN)", "code": "STN", "transit": 42.0, "time": "3h 15m (Train + Tube)", "flight": 14.0},
+        {"name": "Birmingham (BHX) ⭐ Direct Train", "code": "BHX", "transit": 34.0, "time": "2h 30m (Direct CrossCountry!)", "flight": 20.0},
     ]
-    
     results = []
     cols = st.columns(4)
     for idx, ap in enumerate(airports):
         with cols[idx % 4]:
             f_price = st.number_input(f"{ap['name']} Flight (£):", value=ap["flight"], step=1.0, key=ap["code"])
-            total_c = f_price + ap["transit"]
-            results.append({**ap, "flight": f_price, "total": total_c})
-            
+            results.append({**ap, "flight": f_price, "total": f_price + ap["transit"]})
     results.sort(key=lambda x: x["total"])
     best = results[0]
-    
-    st.success(
-        f"🏆 **Smartest Choice: {best['name']}** | **Real Total: £{best['total']:.2f}** "
-        f"(Flight: £{best['flight']:.2f} + Southampton Return Transit: £{best['transit']:.2f}) | Travel Time: {best['time']}"
-    )
+    st.success(f"🏆 **Smartest Choice: {best['name']}** | **Real Door-to-Door Total: £{best['total']:.2f}** (Flight £{best['flight']:.2f} + Return Transit £{best['transit']:.2f})")
     st.dataframe(results, use_container_width=True)
 
 # === TAB 3: Live Expense Tracker ===
@@ -329,40 +429,66 @@ with tab3:
         amt = c3.number_input("Amount:", min_value=0.0, step=0.5)
         curr = c4.selectbox("Currency:", ["GBP (£)", "EUR (€) x0.85", "PLN (zł) x0.20", "HUF (Ft) x0.0021"])
         cat = st.selectbox("Category:", ["Transit 🚆🚌", "Food & Coffee ☕", "Accommodation 🏨", "Tickets 🎟️"])
-        
         if st.form_submit_button("➕ Log Expense"):
             rates = {"GBP (£)": 1.0, "EUR (€) x0.85": 0.85, "PLN (zł) x0.20": 0.20, "HUF (Ft) x0.0021": 0.0021}
             gbp_val = round(amt * rates[curr], 2)
-            data["expenses"].append({
-                "date": datetime.now().strftime("%Y-%m-%d"),
-                "trip": t_name,
-                "item": i_name,
-                "amount_gbp": gbp_val,
-                "category": cat
-            })
+            data["expenses"].append({"date": datetime.now().strftime("%Y-%m-%d"), "trip": t_name, "item": i_name, "amount_gbp": gbp_val, "category": cat})
             save_data(data)
             st.success(f"Added {i_name} (£{gbp_val})!")
             st.rerun()
-            
     st.dataframe(data["expenses"], use_container_width=True)
 
-# === TAB 4: Add New Trip Manually or via AI JSON ===
+# === TAB 4: True Rolling 180-Day Schengen Calculator ===
 with tab4:
-    col_man, col_ai = st.columns(2)
+    st.subheader("🛂 True Rolling 180-Day Schengen Calculator")
+    st.write(f"The Schengen rule counts backwards **180 days from today ({win_start} to {date.today()})**. You have used **{used_schengen} / 90 days** ({schengen_left} days remaining).")
     
+    with st.form("schengen_form"):
+        sc1, sc2, sc3 = st.columns(3)
+        s_country = sc1.text_input("Country / Trip Name:", placeholder="e.g., Spain (Barcelona)")
+        s_start = sc2.date_input("Entry Date:", value=date.today())
+        s_end = sc3.date_input("Exit Date:", value=date.today() + timedelta(days=4))
+        if st.form_submit_button("➕ Add Schengen Trip"):
+            if s_end >= s_start and s_country:
+                data.setdefault("schengen_trips", []).append({
+                    "country": s_country,
+                    "start": s_start.strftime("%Y-%m-%d"),
+                    "end": s_end.strftime("%Y-%m-%d")
+                })
+                save_data(data)
+                st.success(f"Added {s_country} to Schengen log!")
+                st.rerun()
+    st.dataframe(data.get("schengen_trips", []), use_container_width=True)
+
+# === TAB 5: Smart Auto-Geocode Add & AI Import ===
+with tab5:
+    col_man, col_ai = st.columns(2)
     with col_man:
-        st.subheader("➕ Add Destination Manually")
-        with st.form("manual_add"):
-            m_name = st.text_input("Destination Name:", placeholder="e.g., New Forest (Brockenhurst)")
-            m_cat = st.text_input("Category:", "Day Trip / Nature")
-            mc1, mc2, mc3 = st.columns(3)
-            m_lat = mc1.number_input("Latitude:", value=50.8194, format="%.4f")
-            m_lon = mc2.number_input("Longitude:", value=-1.5786, format="%.4f")
-            m_km = mc3.number_input("Distance from SOU (km):", value=22)
-            m_last = st.text_input("Last Return Time (HH:MM):", "21:30")
-            m_pay = st.text_input("Payment Rule:", "🟢 Contactless OK")
+        st.subheader("🔍 Smart Add (Auto-Coordinates & Distance)")
+        st.caption("Just type the place name! The app will automatically find its coordinates and calculate the distance from Southampton.")
+        search_q = st.text_input("1. Search Place Name:", placeholder="e.g., Bath, UK or Seven Sisters, UK")
+        if "geo_res" not in st.session_state:
+            st.session_state.geo_res = {"lat": 50.8194, "lon": -1.5786, "dist": 22, "name": ""}
             
-            if st.form_submit_button("📌 Save to My Map"):
+        if st.button("🔍 Auto-Find Coordinates & Distance") and search_q:
+            res = geocode_place(search_q)
+            if res.get("ok"):
+                st.session_state.geo_res = {"lat": res["lat"], "lon": res["lon"], "dist": res["dist"], "name": search_q}
+                st.success(f"Found: {res['display_name']} ({res['dist']} km from Southampton!)")
+            else:
+                st.error("Could not find place automatically. Try adding ', UK' or ', Europe'.")
+
+        with st.form("smart_manual_add"):
+            m_name = st.text_input("Destination Title:", value=st.session_state.geo_res.get("name", ""))
+            m_cat = st.selectbox("Category:", ["Historic Village", "Linear Hike / Nature", "Coastal Walk", "European City Break", "Food & Cafe Spot 🍔"])
+            mc1, mc2, mc3 = st.columns(3)
+            m_lat = mc1.number_input("Latitude:", value=float(st.session_state.geo_res["lat"]), format="%.4f")
+            m_lon = mc2.number_input("Longitude:", value=float(st.session_state.geo_res["lon"]), format="%.4f")
+            m_km = mc3.number_input("Distance from SOU (km):", value=int(st.session_state.geo_res["dist"]))
+            m_last = st.text_input("Last Return Time (HH:MM):", "20:30")
+            m_pay = st.text_input("Payment Rule:", "🟢 Contactless / Apple Pay OK")
+            
+            if st.form_submit_button("📌 Save Pin to My Map"):
                 if m_name:
                     data["places"].append({
                         "id": len(data["places"]) + 1,
@@ -373,18 +499,20 @@ with tab4:
                         "lat": m_lat,
                         "lon": m_lon,
                         "distance_km": m_km,
+                        "rating": 5,
                         "paid_gbp": 0.0,
                         "saved_gbp": 0.0,
                         "saving_hack": "",
                         "dep_time": "09:00",
-                        "transit_mins": 30,
+                        "transit_mins": 60,
                         "activity_hours": 4.0,
                         "last_return": m_last,
                         "last_transit_note": f"Last return train/bus at {m_last}",
                         "payment_rule": m_pay,
-                        "ticket_info": "🆓 Free entry",
-                        "mood": "🌲 Exploring",
+                        "ticket_info": "🆓 Check official site",
+                        "mood": "🌲 Planned adventure",
                         "notes": "",
+                        "image_url": "",
                         "checkpoints": []
                     })
                     save_data(data)
@@ -393,8 +521,7 @@ with tab4:
 
     with col_ai:
         st.subheader("🤖 Paste AI JSON Snippet")
-        st.caption("Paste the JSON code from our chat to auto-fill all transit rules, checkpoints & coordinates.")
-        json_str = st.text_area("JSON Input:", height=240)
+        json_str = st.text_area("JSON Input:", height=280)
         if st.button("🚀 Import JSON to Map"):
             try:
                 new_p = json.loads(json_str)
