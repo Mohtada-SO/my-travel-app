@@ -346,15 +346,28 @@ if page == "🏡 Home & Inspiration":
     f_scope = st.radio("Show Destinations:", ["All Journeys", "🇬🇧 UK Internal Trips", "✈️ Europe & Extreme Day Trips"], horizontal=True)
     filtered_p = [p for p in data["places"] if f_scope == "All Journeys" or (f_scope.startswith("🇬🇧") and p.get("scope","UK")=="UK") or (f_scope.startswith("✈️") and p.get("scope")=="Europe")]
 
+    if can_edit and st.button("🧹 Clean Duplicate Cities Automatically"):
+        seen = set()
+        unique_places = []
+        for p in data["places"]:
+            if p["name"].strip().lower() not in seen:
+                seen.add(p["name"].strip().lower())
+                unique_places.append(p)
+        data["places"] = unique_places
+        save_data(data)
+        st.success("Removed all duplicate cities!")
+        st.rerun()
+
+    FALLBACK_IMG = "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=900&q=80"
     cols = st.columns(3)
     for idx, p in enumerate(filtered_p):
         with cols[idx % 3]:
             b_cls = "badge-visited" if p["status"] == "visited" else "badge-wishlist"
             b_txt = "✓ Visited" if p["status"] == "visited" else "✦ Wishlist"
-            img = p.get("image_url") or "https://upload.wikimedia.org/wikipedia/commons/thumb/6/64/Durdle_Door_Overview.jpg/1024px-Durdle_Door_Overview.jpg"
+            img = p.get("image_url") if p.get("image_url") else FALLBACK_IMG
             st.markdown(f"""
             <div class="dest-card">
-                <img src="{img}" class="dest-img">
+                <img src="{img}" onerror="this.onerror=null;this.src='{FALLBACK_IMG}';" class="dest-img">
                 <div class="dest-body">
                     <span class="{b_cls}">{b_txt}</span> <span class="badge-trust">{p.get('scope','UK')} • {p.get('community_tag','Nature')[:22]}</span>
                     <h4 style="margin:10px 0 4px 0;">{p['name']}</h4>
@@ -364,9 +377,14 @@ if page == "🏡 Home & Inspiration":
                 </div>
             </div>
             """, unsafe_allow_html=True)
-            if st.button(f"Open & Edit: {p['name'][:22]}", key=f"hb_{p['id']}", use_container_width=True):
+            bc1, bc2 = st.columns([3, 1])
+            if bc1.button(f"Open: {p['name'][:18]}", key=f"hb_{idx}_{p['id']}", use_container_width=True):
                 st.session_state.selected_place = p["name"]
                 st.session_state.nav_page = "🇬🇧 Trip & Hike Planner"
+                st.rerun()
+            if can_edit and bc2.button("🗑️", key=f"del_{idx}_{p['id']}", help="Delete this place", use_container_width=True):
+                data["places"].pop(data["places"].index(p))
+                save_data(data)
                 st.rerun()
 
 # === PAGE 2: FULL INTERACTIVE MAP ===
@@ -385,7 +403,7 @@ elif page == "🗺️ Explore & Pin Map":
         if f_reg == "✈️ Europe Only" and p.get("scope") != "Europe": continue
         col = "green" if p["status"] == "visited" else "orange"
         folium.Marker([p["lat"], p["lon"]], popup=f"<b>{p['name']}</b><br>Curfew: {p['last_return']}<br>{p.get('highlights','')}", tooltip=p["name"], icon=folium.Icon(color=col)).add_to(m)
-    st_folium(m, width=1050, height=520)
+    st_folium(m, width=1050, height=520, returned_objects=[])
 
 # === PAGE 3: TRIP & HIKE PLANNER (ALL DESTINATIONS) ===
 elif page == "🇬🇧 Trip & Hike Planner":
