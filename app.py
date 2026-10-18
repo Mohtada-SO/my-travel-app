@@ -9,15 +9,14 @@ from datetime import datetime, time, timedelta, date
 
 st.set_page_config(page_title="Smart Travel Atlas | Southampton", page_icon="🌿", layout="wide")
 
-# === SECTION 1: PREMIUM VISUAL SYSTEM (CSS & THEME) ===
+# === SECTION 1: PREMIUM VISUAL SYSTEM (CSS & DARK-MODE FIX) ===
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap');
 
-    /* Main Background & Typography */
     .stApp {
-        background-color: #FAF8F5;
-        color: #1F2421;
+        background-color: #FAF8F5 !important;
+        color: #1F2421 !important;
         font-family: 'Inter', sans-serif;
     }
     h1, h2, h3, .serif-title {
@@ -26,95 +25,97 @@ st.markdown("""
         letter-spacing: -0.01em;
     }
     
-    /* Sidebar Styling */
+    /* Force readable dark text even when phone/browser is in Dark Mode */
+    .stMarkdown, p, span, label, li, div[data-testid="stMetricValue"], div[data-testid="stMetricLabel"] {
+        color: #1F2421 !important;
+    }
+    .dest-body h4, .dest-body div {
+        color: #1F2421 !important;
+    }
+    input, textarea {
+        color: #1F2421 !important;
+        background-color: #FFFFFF !important;
+    }
+    
     section[data-testid="stSidebar"] {
         background-color: #F2EFE9 !important;
         border-right: 1px solid #E5E0D8;
     }
 
-    /* Editorial Hero Banner */
     .hero-box {
         position: relative;
         border-radius: 18px;
         overflow: hidden;
-        background-image: linear-gradient(180deg, rgba(20, 35, 28, 0.25) 0%, rgba(20, 35, 28, 0.78) 100%), 
-                          url('https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=1600&q=85');
+        background-image: linear-gradient(180deg, rgba(20, 35, 28, 0.25) 0%, rgba(20, 35, 28, 0.82) 100%), 
+                          url('https://upload.wikimedia.org/wikipedia/commons/thumb/6/64/Durdle_Door_Overview.jpg/1280px-Durdle_Door_Overview.jpg');
         background-size: cover;
         background-position: center;
-        padding: 56px 44px;
-        color: #FAF8F5;
-        margin-bottom: 28px;
-        box-shadow: 0 12px 30px rgba(27, 67, 50, 0.10);
+        padding: 52px 42px;
+        color: #FAF8F5 !important;
+        margin-bottom: 26px;
+        box-shadow: 0 12px 30px rgba(27, 67, 50, 0.12);
     }
     .hero-tag {
-        background: rgba(250, 248, 245, 0.2);
+        background: rgba(250, 248, 245, 0.22);
         backdrop-filter: blur(6px);
         padding: 5px 14px;
         border-radius: 20px;
         font-size: 0.8rem;
+        color: #FFFFFF !important;
         text-transform: uppercase;
         letter-spacing: 0.08em;
         display: inline-block;
-        margin-bottom: 14px;
+        margin-bottom: 12px;
     }
     .hero-title {
         font-family: 'Playfair Display', serif;
-        font-size: 2.7rem;
+        font-size: 2.5rem;
         font-weight: 700;
         color: #FFFFFF !important;
         margin: 0 0 10px 0;
         line-height: 1.15;
     }
     .hero-sub {
-        font-size: 1.05rem;
-        color: #E8ECE9;
-        max-width: 620px;
+        font-size: 1.02rem;
+        color: #F0F4F1 !important;
+        max-width: 640px;
         font-weight: 300;
         margin-bottom: 0;
     }
 
-    /* Summary Stat Cards */
     .stat-card {
         background: #FFFFFF;
         border: 1px solid #EAE6DF;
         border-radius: 14px;
-        padding: 20px 22px;
+        padding: 18px 20px;
         box-shadow: 0 4px 14px rgba(0,0,0,0.02);
-        transition: transform 0.2s ease;
     }
-    .stat-card:hover { transform: translateY(-2px); }
-    .stat-label { font-size: 0.8rem; color: #6B756E; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
-    .stat-val { font-size: 1.75rem; font-weight: 700; color: #1B4332; margin: 6px 0 2px 0; }
-    .stat-sub { font-size: 0.82rem; color: #2D6A4F; }
+    .stat-label { font-size: 0.78rem; color: #5C6660 !important; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+    .stat-val { font-size: 1.7rem; font-weight: 700; color: #1B4332 !important; margin: 6px 0 2px 0; }
+    .stat-sub { font-size: 0.82rem; color: #2D6A4F !important; }
 
-    /* Destination Editorial Cards */
     .dest-card {
         background: #FFFFFF;
         border-radius: 16px;
         overflow: hidden;
         border: 1px solid #EAE6DF;
         box-shadow: 0 6px 18px rgba(0,0,0,0.03);
-        margin-bottom: 16px;
-        transition: all 0.25s ease;
-    }
-    .dest-card:hover {
-        box-shadow: 0 12px 26px rgba(27, 67, 50, 0.08);
-        transform: translateY(-3px);
+        margin-bottom: 14px;
     }
     .dest-img {
         width: 100%;
-        height: 200px;
+        height: 195px;
         object-fit: cover;
     }
-    .dest-body { padding: 18px 20px; }
-    .badge-visited { background: #D8F3DC; color: #1B4332; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
-    .badge-wishlist { background: #FFF3CD; color: #856404; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
-    .badge-trust { background: #E6F2EF; color: #1F5E55; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 500; margin-left: 6px; }
+    .dest-body { padding: 16px 18px; }
+    .badge-visited { background: #D8F3DC; color: #1B4332 !important; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
+    .badge-wishlist { background: #FFF3CD; color: #856404 !important; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
+    .badge-trust { background: #E6F2EF; color: #1F5E55 !important; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 500; margin-left: 5px; }
 </style>
 """, unsafe_allow_html=True)
 
 # === SECTION 2: DATA & HELPER FUNCTIONS ===
-DATA_FILE = "travel_atlas_v4.json"
+DATA_FILE = "travel_atlas_v5.json"
 SOU_LAT, SOU_LON = 50.9097, -1.4044
 
 def calc_distance_km(lat1, lon1, lat2, lon2):
@@ -138,6 +139,38 @@ def get_live_weather_and_sunset(lat, lon):
     except:
         return {"ok": False}
 
+@st.cache_data(ttl=86400)
+def auto_lookup_place(query):
+    out = {"ok": False, "lat": 50.9097, "lon": -1.4044, "dist": 50, "img": "", "summary": "", "name": query, "region": "UK"}
+    try:
+        headers = {"User-Agent": "SmartTravelAtlas/3.0"}
+        # 1. Geocode first to get exact city/region context
+        r = requests.get("https://nominatim.openstreetmap.org/search", params={"q": query, "format": "json", "addressdetails": 1, "limit": 1}, headers=headers, timeout=5).json()
+        wiki_query = f"{query} city town landmark"
+        if r:
+            out["lat"], out["lon"] = float(r[0]["lat"]), float(r[0]["lon"])
+            out["dist"] = calc_distance_km(SOU_LAT, SOU_LON, out["lat"], out["lon"])
+            out["ok"] = True
+            parts = [p.strip() for p in r[0].get("display_name", "").split(",")]
+            if len(parts) >= 2:
+                out["name"] = parts[0]
+                out["region"] = f"{parts[1]}, {parts[-1]}"
+                wiki_query = f"{parts[0]} {parts[1]} {parts[-1]}"
+
+        # 2. Search Wikipedia using the full geographic context (prevents 'Bath' -> bathtub!)
+        sr = requests.get("https://en.wikipedia.org/w/api.php", params={
+            "action": "query", "list": "search", "srsearch": wiki_query, "format": "json", "srlimit": 1
+        }, headers=headers, timeout=4).json()
+        hits = sr.get("query", {}).get("search", [])
+        if hits:
+            title = hits[0]["title"].replace(" ", "_")
+            w = requests.get(f"https://en.wikipedia.org/api/rest_v1/page/summary/{title}", headers=headers, timeout=4).json()
+            if "thumbnail" in w: out["img"] = w["thumbnail"]["source"]
+            if "extract" in w: out["summary"] = w["extract"][:200] + "..."
+    except:
+        pass
+    return out
+
 def calc_schengen_rolling(trips, ref_date=None):
     ref_date = ref_date or date.today()
     win_start = ref_date - timedelta(days=179)
@@ -148,7 +181,8 @@ def calc_schengen_rolling(trips, ref_date=None):
             while curr <= end:
                 if win_start <= curr <= ref_date: used.add(curr)
                 curr += timedelta(days=1)
-        except: pass
+        except:
+            pass
     return len(used), win_start
 
 DEFAULT_DATA = {
@@ -205,7 +239,22 @@ DEFAULT_DATA = {
             "checkpoints": [{"task": "Train to Gillingham & Bus to Shaftesbury", "done": True}]
         },
         {
-            "id": 4, "name": "Girona / Costa Brava (Extreme Day Trip)", "region": "Spain", "scope": "Europe",
+            "id": 4, "name": "Bath (Roman Baths & Royal Crescent)", "region": "Somerset, England", "scope": "UK",
+            "category": "Historic Heritage City", "community_tag": "UNESCO World Heritage / National Trust Skyline", "status": "wishlist",
+            "lat": 51.3811, "lon": -2.3590, "distance_km": 84, "rating": 5, "paid_gbp": 19.80, "saved_gbp": 10.00,
+            "saving_hack": "Direct GWR Train from Southampton Central with Railcard (1h 25m - No changes!)",
+            "dep_time": "09:10", "transit_mins": 85, "activity_hours": 5.5, "last_return": "22:20",
+            "last_transit_note": "Direct GWR trains back to Southampton run hourly until ~22:20 from Bath Spa!",
+            "payment_rule": "Contactless OK everywhere | Show Railcard on GWR train",
+            "ticket_info": "City & Pulteney Bridge free | Roman Baths: Book student ticket online",
+            "highlights": "Roman Baths, Royal Crescent, Pulteney Bridge, National Trust Bath Skyline walk",
+            "notes": "Super easy direct train day-trip from Southampton Central.",
+            "source_link": "https://www.nationaltrust.org.uk/visit/bath-bristol/bath-skyline",
+            "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Pulteney_Bridge_Bath.jpg/1024px-Pulteney_Bridge_Bath.jpg",
+            "checkpoints": [{"task": "Direct GWR train Southampton -> Bath Spa", "done": False}, {"task": "Walk Pulteney Bridge & Royal Crescent", "done": False}]
+        },
+        {
+            "id": 5, "name": "Girona / Costa Brava (Extreme Day Trip)", "region": "Spain", "scope": "Europe",
             "category": "Extreme Day Trip (EDT)", "community_tag": "Ryanair Cheap Escape", "status": "wishlist",
             "lat": 41.9794, "lon": 2.8214, "distance_km": 1050, "rating": 5, "paid_gbp": 29.00, "saved_gbp": 45.00,
             "saving_hack": "£18 Return Flight from Bournemouth (BOH) - No hotel needed!",
@@ -228,23 +277,6 @@ DEFAULT_DATA = {
     ]
 }
 
-@st.cache_data(ttl=86400)
-def auto_lookup_place(query):
-    out = {"ok": False, "lat": 50.9097, "lon": -1.4044, "dist": 50, "img": "", "summary": "", "name": query}
-    try:
-        headers = {"User-Agent": "SmartTravelAtlas/2.0"}
-        r = requests.get("https://nominatim.openstreetmap.org/search", params={"q": query, "format": "json", "limit": 1}, headers=headers, timeout=4).json()
-        if r:
-            out["lat"], out["lon"] = float(r[0]["lat"]), float(r[0]["lon"])
-            out["dist"] = calc_distance_km(SOU_LAT, SOU_LON, out["lat"], out["lon"])
-            out["ok"] = True
-        clean_q = query.split(",")[0].strip().replace(" ", "_")
-        w = requests.get(f"https://en.wikipedia.org/api/rest_v1/page/summary/{clean_q}", headers=headers, timeout=4).json()
-        if "thumbnail" in w: out["img"] = w["thumbnail"]["source"]
-        if "extract" in w: out["summary"] = w["extract"][:180] + "..."
-    except: pass
-    return out
-
 def load_data():
     if not os.path.exists(DATA_FILE):
         with open(DATA_FILE, "w", encoding="utf-8") as f: json.dump(DEFAULT_DATA, f, ensure_ascii=False, indent=2)
@@ -266,7 +298,7 @@ with st.sidebar:
     nav_options = [
         "🏡 Home & Inspiration",
         "🗺️ Explore & Pin Map",
-        "🇬🇧 UK Trips & Hikes",
+        "🇬🇧 Trip & Hike Planner",
         "✈️ Europe, Airports & EDT",
         "➕ Add Place / Social Link",
         "💸 Expenses & Schengen",
@@ -287,8 +319,8 @@ can_edit = st.session_state.is_owner
 if page == "🏡 Home & Inspiration":
     c_top1, c_top2, c_top3 = st.columns([3.5, 1, 1])
     c_top1.markdown("### 🌿 Smart Travel Planner & Memory Atlas")
-    if c_top2.button("🇬🇧 Plan UK Trip", use_container_width=True): st.session_state.nav_page = "🇬🇧 UK Trips & Hikes"; st.rerun()
-    if c_top3.button("✈️ Plan Europe / EDT", use_container_width=True): st.session_state.nav_page = "✈️ Europe, Airports & EDT"; st.rerun()
+    if c_top2.button("🇬🇧 Plan Trip", use_container_width=True): st.session_state.nav_page = "🇬🇧 Trip & Hike Planner"; st.rerun()
+    if c_top3.button("✈️ Europe / EDT", use_container_width=True): st.session_state.nav_page = "✈️ Europe, Airports & EDT"; st.rerun()
 
     st.markdown("""
     <div class="hero-box">
@@ -327,14 +359,14 @@ if page == "🏡 Home & Inspiration":
                     <span class="{b_cls}">{b_txt}</span> <span class="badge-trust">{p.get('scope','UK')} • {p.get('community_tag','Nature')[:22]}</span>
                     <h4 style="margin:10px 0 4px 0;">{p['name']}</h4>
                     <div style="font-size:0.8rem; color:#6B756E; margin-bottom:8px;">📍 {p.get('region','')} • {p['distance_km']} km from SOU</div>
-                    <div style="font-size:0.83rem; background:#F7F5F0; padding:8px; border-radius:8px; margin-bottom:8px;"><b>👀 Highlights:</b> {p.get('highlights','')[:75]}</div>
-                    <div style="font-size:0.78rem; color:#854D0E;">🚨 <b>Curfew:</b> {p['last_return']} | 💳 {p['payment_rule'][:26]}</div>
+                    <div style="font-size:0.83rem; background:#F7F5F0; padding:8px; border-radius:8px; margin-bottom:8px;"><b>👀 Highlights:</b> {p.get('highlights','')[:80]}</div>
+                    <div style="font-size:0.78rem; color:#854D0E;">🚨 <b>Curfew:</b> {p['last_return']} | 💳 {p['payment_rule'][:28]}</div>
                 </div>
             </div>
             """, unsafe_allow_html=True)
-            if st.button(f"Open Details: {p['name'][:20]}", key=f"hb_{p['id']}", use_container_width=True):
+            if st.button(f"Open & Edit: {p['name'][:22]}", key=f"hb_{p['id']}", use_container_width=True):
                 st.session_state.selected_place = p["name"]
-                st.session_state.nav_page = "🇬🇧 UK Trips & Hikes" if p.get("scope","UK")=="UK" else "✈️ Europe, Airports & EDT"
+                st.session_state.nav_page = "🇬🇧 Trip & Hike Planner"
                 st.rerun()
 
 # === PAGE 2: FULL INTERACTIVE MAP ===
@@ -355,28 +387,27 @@ elif page == "🗺️ Explore & Pin Map":
         folium.Marker([p["lat"], p["lon"]], popup=f"<b>{p['name']}</b><br>Curfew: {p['last_return']}<br>{p.get('highlights','')}", tooltip=p["name"], icon=folium.Icon(color=col)).add_to(m)
     st_folium(m, width=1050, height=520)
 
-# === PAGE 3: UK TRIPS & HIKES PLANNER ===
-elif page == "🇬🇧 UK Trips & Hikes":
-    st.markdown("## 🇬🇧 UK Day-Trips, National Trust Trails & Curfew Planner")
-    uk_places = [p for p in data["places"] if p.get("scope", "UK") == "UK"]
-    names = [p["name"] for p in uk_places]
+# === PAGE 3: TRIP & HIKE PLANNER (ALL DESTINATIONS) ===
+elif page == "🇬🇧 Trip & Hike Planner":
+    st.markdown("## 🧭 Interactive Trip, Trail & Curfew Planner")
+    names = [p["name"] for p in data["places"]]
     idx = names.index(st.session_state.get("selected_place")) if st.session_state.get("selected_place") in names else 0
-    sel = st.selectbox("Select UK Destination:", names, index=idx)
+    sel = st.selectbox("Select Destination to Plan or Edit:", names, index=idx)
     place = next(p for p in data["places"] if p["name"] == sel)
 
     col_l, col_r = st.columns([1.05, 1.45])
     with col_l:
-        st.image(place.get("image_url"), use_container_width=True)
+        if place.get("image_url"):
+            st.image(place.get("image_url"), use_container_width=True)
         if can_edit and st.button("🔄 Toggle Visited / Wishlist Status", use_container_width=True):
             place["status"] = "visited" if place["status"] != "visited" else "wishlist"; save_data(data); st.rerun()
-        st.info(f"🏛️ **Trust / Community:** {place.get('community_tag','')}\n\n👀 **What You'll See:** {place.get('highlights','')}\n\n📝 **Notes:** {place.get('notes','')}")
+        st.info(f"🏛️ **Trust / Tag:** {place.get('community_tag','')}\n\n👀 **What You'll See:** {place.get('highlights','')}\n\n📝 **Notes:** {place.get('notes','')}")
         
         q_clean = place["name"].split("(")[0].strip().replace(" ", "+")
         b1, b2, b3 = st.columns(3)
-        b1.link_button("🚆 Google Transit", f"https://www.google.com/maps/dir/Southampton+Central/{q_clean}/", use_container_width=True)
-        if "Hike" in place["category"] or "Walk" in place["category"] or place.get("source_link"):
-            b2.link_button("🥾 Trail / Source", place.get("source_link") or f"https://www.alltrails.com/search?q={q_clean}", use_container_width=True)
-        b3.link_button("🏛️ National Trust", f"https://www.google.com/search?q={q_clean}+national+trust+english+heritage", use_container_width=True)
+        b1.link_button("🚆 Check Live Last Train/Bus", f"https://www.google.com/maps/dir/{q_clean}/Southampton+Central/data=!4m2!4m1!3e3", use_container_width=True)
+        b2.link_button("🥾 Trail / Source Link", place.get("source_link") or f"https://www.alltrails.com/search?q={q_clean}", use_container_width=True)
+        b3.link_button("🏛️ Heritage & Tickets", f"https://www.google.com/search?q={q_clean}+official+tickets+national+trust", use_container_width=True)
 
     with col_r:
         w = get_live_weather_and_sunset(place["lat"], place["lon"])
@@ -386,15 +417,20 @@ elif page == "🇬🇧 UK Trips & Hikes":
 
         st.markdown("#### ⏱️ Reverse Timeline & Last-Bus Curfew Calculator")
         tc1, tc2, tc3, tc4 = st.columns(4)
-        dep_t = tc1.time_input("Leave SOU:", datetime.strptime(place.get("dep_time","08:30"),"%H:%M").time())
-        tr_m = tc2.number_input("Train/Bus (m):", value=int(place.get("transit_mins",90)), step=5)
+        try:
+            d_dep = datetime.strptime(place.get("dep_time","08:30"),"%H:%M").time()
+            d_lr = datetime.strptime(place.get("last_return","18:00"),"%H:%M").time()
+        except:
+            d_dep, d_lr = time(8,30), time(18,0)
+        dep_t = tc1.time_input("Leave SOU:", d_dep)
+        tr_m = tc2.number_input("Transit (m):", value=int(place.get("transit_mins",90)), step=5)
         ac_h = tc3.number_input("Walk/Stay (h):", value=float(place.get("activity_hours",4.0)), step=0.5)
-        lr_t = tc4.time_input("🚨 Last Return:", datetime.strptime(place.get("last_return","18:00"),"%H:%M").time())
+        lr_t = tc4.time_input("🚨 Last Return:", d_lr)
 
         arr_dt = datetime.combine(date.today(), dep_t) + timedelta(minutes=tr_m)
         fin_dt = arr_dt + timedelta(hours=ac_h)
         buf_m = int((datetime.combine(date.today(), lr_t) - fin_dt).total_seconds() / 60)
-        st.write(f"**Arrive:** `{arr_dt.strftime('%H:%M')}` ➡️ **Finish Walk:** `{fin_dt.strftime('%H:%M')}` ➡️ **Last Bus/Train:** `{lr_t.strftime('%H:%M')}`")
+        st.write(f"**Arrive:** `{arr_dt.strftime('%H:%M')}` ➡️ **Finish Walk:** `{fin_dt.strftime('%H:%M')}` ➡️ **Last Return:** `{lr_t.strftime('%H:%M')}`")
         if buf_m >= 45: st.success(f"✅ Safe Schedule! {buf_m//60}h {buf_m%60}m spare buffer before curfew.")
         else: st.error(f"⚠️ Tight/Danger! Buffer is {buf_m} mins. Leave Southampton earlier!")
 
@@ -411,32 +447,34 @@ elif page == "🇬🇧 UK Trips & Hikes":
             if st.button("➕ Add Step") and ncp: place.setdefault("checkpoints",[]).append({"task":ncp,"done":False}); save_data(data); st.rerun()
 
         if can_edit:
-            with st.expander("✏️ Edit Trip Details, Photo & Prices"):
+            with st.expander("✏️ Edit Trip Details, Photo, Curfew & Delete"):
                 place["image_url"] = st.text_input("Image URL:", place.get("image_url",""))
-                place["highlights"] = st.text_input("What You'll See (Highlights):", place.get("highlights",""))
+                place["highlights"] = st.text_area("What You'll See (Highlights):", place.get("highlights",""))
                 place["last_transit_note"] = st.text_input("Last Bus/Train Note:", place.get("last_transit_note",""))
                 place["payment_rule"] = st.text_input("Payment Rule:", place.get("payment_rule",""))
+                place["saving_hack"] = st.text_input("Smart Saving Hack:", place.get("saving_hack",""))
                 place["paid_gbp"] = st.number_input("Paid (£):", value=float(place.get("paid_gbp",0.0)))
                 place["saved_gbp"] = st.number_input("Saved (£):", value=float(place.get("saved_gbp",0.0)))
-                if st.button("💾 Save UK Trip Changes"):
+                c_sv, c_dl = st.columns(2)
+                if c_sv.button("💾 Save All Changes", use_container_width=True):
                     place["dep_time"], place["transit_mins"], place["activity_hours"], place["last_return"] = dep_t.strftime("%H:%M"), tr_m, ac_h, lr_t.strftime("%H:%M")
                     save_data(data); st.success("Saved!"); st.rerun()
+                if c_dl.button("🗑️ Delete This Destination", use_container_width=True):
+                    data["places"] = [p for p in data["places"] if p["id"] != place["id"]]
+                    save_data(data); st.rerun()
 
 # === PAGE 4: EUROPE, DYNAMIC AIRPORTS & EXTREME DAY TRIPS (EDT) ===
 elif page == "✈️ Europe, Airports & EDT":
     st.markdown("## ✈️ Europe Escapes, Custom Airport Matrix & Extreme Day Trips")
-    
-    # 1. Extreme Day Trip (EDT) Radar
     st.markdown("### ⚡ 1. Spontaneous 'Extreme Day Trip' (EDT) Cheap Flight Hunter")
-    st.caption("Want to fly to Spain, Italy, or Poland for £15–£25, explore a new city for a full day, and sleep back in your bed? Check live 'Everywhere' deals from airports near Southampton:")
+    st.caption("Find £15–£25 return flights from airports near Southampton:")
     e1, e2, e3, e4 = st.columns(4)
     e1.link_button("🔥 From Bournemouth (BOH)", "https://www.skyscanner.net/transport/flights-from/boh/", use_container_width=True)
     e2.link_button("⭐ From Bristol (BRS)", "https://www.skyscanner.net/transport/flights-from/brs/", use_container_width=True)
     e3.link_button("✈️ From Gatwick (LGW)", "https://www.skyscanner.net/transport/flights-from/lgw/", use_container_width=True)
-    e4.link_button("🎒 Ryanair Cheap Finder", "https://www.ryanair.com/gb/en/cheap-flights", use_container_width=True)
+    e4.link_button("🎒 Ryanair Fare Finder", "https://www.ryanair.com/gb/en/cheap-flights", use_container_width=True)
 
     st.divider()
-    # 2. Custom Per-City Door-to-Door Airport Calculator
     st.markdown("### 🧮 2. Door-to-Door Airport Comparator (Custom Per City)")
     c_city, c_dest_bus = st.columns([2, 1])
     target_city = c_city.text_input("🌍 Which European City are you comparing flights for?", "Girona / Barcelona, Spain")
@@ -452,7 +490,7 @@ elif page == "✈️ Europe, Airports & EDT":
     
     ap_results.sort(key=lambda x: x["REAL DOOR-TO-DOOR TOTAL (£)"])
     win = ap_results[0]
-    st.success(f"🏆 **Cheapest Door-to-Door Route to {target_city}: {win['UK Airport']}** — Total: **£{win['REAL DOOR-TO-DOOR TOTAL (£)']:.2f}** (includes Southampton train/bus + flight + Europe city transfer!)")
+    st.success(f"🏆 **Cheapest Door-to-Door Route to {target_city}: {win['UK Airport']}** — Total: **£{win['REAL DOOR-TO-DOOR TOTAL (£)']:.2f}**")
     st.dataframe(ap_results, use_container_width=True)
 
     if can_edit:
@@ -471,33 +509,38 @@ elif page == "➕ Add Place / Social Link":
     else:
         col_s, col_j = st.columns([1.3, 1])
         with col_s:
-            st.subheader("🔍 1. Auto-Fetch Place (Wikipedia + Map + Any Social Link)")
-            st.caption("Type ANY village, hike, or obscure European city! It auto-fetches coordinates, distance from Southampton, and Wikipedia photo.")
-            q_search = st.text_input("Place or City Name:", placeholder="e.g., Zaragoza, Spain OR Corfe Castle, UK")
-            if "lookup" not in st.session_state: st.session_state.lookup = {"name":"", "lat":50.9097, "lon":-1.4044, "dist":50, "img":"", "summary":""}
-            if st.button("🔍 Auto-Fetch Details & Photo") and q_search:
+            st.subheader("🔍 1. Smart Geo-Fetch (Wikipedia + Map + Social Link)")
+            st.caption("Type a city, village, or landmark (e.g., 'Bath, UK' or 'Corfe Castle'). It finds the exact location first so Wikipedia fetches the real place!")
+            q_search = st.text_input("Place or City Name:", placeholder="e.g., Bath, UK OR Zaragoza, Spain")
+            if "lookup" not in st.session_state: st.session_state.lookup = {"name":"", "region":"UK", "lat":50.9097, "lon":-1.4044, "dist":50, "img":"", "summary":""}
+            if st.button("🔍 Auto-Fetch Place Info & Photo") and q_search:
                 res = auto_lookup_place(q_search)
                 st.session_state.lookup = res
-                if res["ok"]: st.success(f"Found! {res['dist']} km from Southampton.")
-                else: st.warning("Coordinates not exact—you can still save or adjust below.")
+                if res["ok"]: st.success(f"Found: {res['name']} ({res['region']}) — {res['dist']} km from Southampton!")
+                else: st.warning("Could not auto-locate. Try adding ', UK' or country name.")
+
+            lk = st.session_state.lookup
+            if lk.get("name"):
+                q_tr = lk["name"].replace(" ", "+")
+                st.link_button(f"🚆 Click to check live train/bus times from Southampton to {lk['name']}", f"https://www.google.com/maps/dir/Southampton+Central/{q_tr}/data=!4m2!4m1!3e3")
 
             with st.form("add_uni_form"):
-                lk = st.session_state.lookup
-                f_name = st.text_input("Title:", value=lk.get("name") or q_search)
+                f_name = st.text_input("Destination Title:", value=lk.get("name") or q_search)
+                f_reg_txt = st.text_input("Region / Country:", value=lk.get("region", "UK"))
                 f_scope = st.selectbox("Trip Scope:", ["UK", "Europe"])
-                f_cat = st.selectbox("Category:", ["Historic Village", "Linear Hike / Nature", "Coastal Walk", "Extreme Day Trip (EDT)", "European City Break", "Food & Cafe Spot"])
-                f_trust = st.text_input("Community / Trust / Airline Tag:", "National Trust / Ryanair EDT")
-                f_link = st.text_input("🔗 Source Link (Instagram, TikTok, AllTrails, Google Maps, Blog):", placeholder="Paste any link where you discovered this spot...")
+                f_cat = st.selectbox("Category:", ["Historic Village / City", "Linear Hike / Nature", "Coastal Walk", "Extreme Day Trip (EDT)", "Food & Cafe Spot"])
+                f_trust = st.text_input("Community / Trust / Airline Tag:", "National Trust / GWR / Ryanair")
+                f_link = st.text_input("🔗 Source Link (Instagram, TikTok, AllTrails, Google Maps, Blog):")
                 f_high = st.text_area("👀 What You'll See (Highlights):", value=lk.get("summary",""))
-                f_img = st.text_input("Photo URL (Auto-filled from Wikipedia if available):", value=lk.get("img",""))
+                f_img = st.text_input("Photo URL (Auto-filled from Wikipedia):", value=lk.get("img",""))
                 c1, c2 = st.columns(2)
-                f_last = c1.text_input("🚨 Last Return Bus/Train/Flight:", "19:30")
+                f_last = c1.text_input("🚨 Last Return Bus/Train/Flight (HH:MM):", "20:30")
                 f_pay = c2.text_input("💳 Local Payment Rule:", "Contactless OK")
                 
                 if st.form_submit_button("📌 Save Destination to My Atlas"):
                     if f_name:
                         data["places"].append({
-                            "id": len(data["places"])+1, "name": f_name, "region": f_scope, "scope": f_scope,
+                            "id": int(datetime.now().timestamp()), "name": f_name, "region": f_reg_txt, "scope": f_scope,
                             "category": f_cat, "community_tag": f_trust, "status": "wishlist",
                             "lat": lk["lat"], "lon": lk["lon"], "distance_km": lk["dist"], "rating": 5,
                             "paid_gbp": 0.0, "saved_gbp": 0.0, "saving_hack": "", "dep_time": "08:30",
@@ -510,10 +553,11 @@ elif page == "➕ Add Place / Social Link":
 
         with col_j:
             st.subheader("🤖 2. Quick AI JSON Paste")
+            st.caption("Ask me in chat for any city/village and I'll give you a ready JSON with exact last bus times & ticket hacks to paste here:")
             j_txt = st.text_area("Paste JSON from chat:", height=260)
             if st.button("🚀 Import JSON") and j_txt:
                 try:
-                    np = json.loads(j_txt); np["id"] = len(data["places"])+1
+                    np = json.loads(j_txt); np["id"] = int(datetime.now().timestamp())
                     data["places"].append(np); save_data(data); st.success("Imported!"); st.rerun()
                 except Exception as e: st.error(f"Error: {e}")
 
