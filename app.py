@@ -278,15 +278,50 @@ DEFAULT_DATA = {
 }
 
 def load_data():
+    gh_token = st.secrets.get("GITHUB_TOKEN", "")
+    gh_repo = st.secrets.get("GITHUB_REPO", "Mohtada-SO/my-travel-app")
+    # 1. Try loading permanent file directly from GitHub first
+    if gh_token:
+        try:
+            url = f"https://api.github.com/repos/{gh_repo}/contents/{DATA_FILE}"
+            r = requests.get(url, headers={"Authorization": f"token {gh_token}"}, timeout=5)
+            if r.status_code == 200:
+                content = base64.b64decode(r.json()["content"]).decode("utf-8")
+                d = json.loads(content)
+                with open(DATA_FILE, "w", encoding="utf-8") as f: json.dump(d, f, ensure_ascii=False, indent=2)
+                return d
+        except: pass
+    # 2. Fallback to local file
     if not os.path.exists(DATA_FILE):
         with open(DATA_FILE, "w", encoding="utf-8") as f: json.dump(DEFAULT_DATA, f, ensure_ascii=False, indent=2)
     with open(DATA_FILE, "r", encoding="utf-8") as f: return json.load(f)
 
 def save_data(d):
-    with open(DATA_FILE, "w", encoding="utf-8") as f: json.dump(d, f, ensure_ascii=False, indent=2)
+    content_str = json.dumps(d, ensure_ascii=False, indent=2)
+    with open(DATA_FILE, "w", encoding="utf-8") as f: f.write(content_str)
+    # Auto-sync to GitHub permanently
+    gh_token = st.secrets.get("GITHUB_TOKEN", "")
+    gh_repo = st.secrets.get("GITHUB_REPO", "Mohtada-SO/my-travel-app")
+    if gh_token:
+        try:
+            url = f"https://api.github.com/repos/{gh_repo}/contents/{DATA_FILE}"
+            headers = {"Authorization": f"token {gh_token}"}
+            r = requests.get(url, headers=headers, timeout=5)
+            sha = r.json().get("sha") if r.status_code == 200 else None
+            payload = {
+                "message": "Auto-save travel atlas data",
+                "content": base64.b64encode(content_str.encode("utf-8")).decode("utf-8")
+            }
+            if sha: payload["sha"] = sha
+            requests.put(url, headers=headers, json=payload, timeout=6)
+        except: pass
 
 data = load_data()
 
+# --- Permanent Owner Lock Check (from Streamlit Secrets or JSON) ---
+secret_pin = str(st.secrets.get("OWNER_PIN", "") or data.get("owner_pin", ""))
+pin_set = bool(secret_pin)
+if "is_owner" not in st.session_state: st.session_state.is_owner = not pin_set
 # --- Owner Lock Check ---
 pin_set = bool(data.get("owner_pin", ""))
 if "is_owner" not in st.session_state: st.session_state.is_owner = not pin_set
