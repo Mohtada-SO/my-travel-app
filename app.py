@@ -329,7 +329,8 @@ if "is_owner" not in st.session_state: st.session_state.is_owner = not pin_set
 with st.sidebar:
     st.markdown("## 🌿 Smart Travel Atlas")
     st.caption("Southampton Hub • UK & Europe")
-    if "nav_page" not in st.session_state: st.session_state.nav_page = "🏡 Home & Inspiration"
+    if "nav_page" not in st.session_state:
+        st.session_state.nav_page = "🏡 Home & Inspiration"
     nav_options = [
         "🏡 Home & Inspiration",
         "🗺️ Explore & Pin Map",
@@ -344,11 +345,11 @@ with st.sidebar:
     st.divider()
     if pin_set and not st.session_state.is_owner:
         u_pin = st.text_input("🔒 Visitor Mode (Enter Owner PIN to Edit):", type="password")
-       if u_pin == secret_pin: st.session_state.is_owner = True; st.rerun()
+        if u_pin == secret_pin:
+            st.session_state.is_owner = True
+            st.rerun()
     else:
         st.caption("🔓 **Owner Mode Active** (Full Edit Enabled)")
-
-can_edit = st.session_state.is_owner
 
 # === PAGE 1: HOME ===
 if page == "🏡 Home & Inspiration":
