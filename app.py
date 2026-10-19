@@ -321,10 +321,8 @@ data = load_data()
 # --- Permanent Owner Lock Check (from Streamlit Secrets or JSON) ---
 secret_pin = str(st.secrets.get("OWNER_PIN", "") or data.get("owner_pin", ""))
 pin_set = bool(secret_pin)
-if "is_owner" not in st.session_state: st.session_state.is_owner = not pin_set
-# --- Owner Lock Check ---
-pin_set = bool(data.get("owner_pin", ""))
-if "is_owner" not in st.session_state: st.session_state.is_owner = not pin_set
+if "is_owner" not in st.session_state:
+    st.session_state.is_owner = not pin_set
 
 with st.sidebar:
     st.markdown("## 🌿 Smart Travel Atlas")
@@ -351,6 +349,7 @@ with st.sidebar:
     else:
         st.caption("🔓 **Owner Mode Active** (Full Edit Enabled)")
 
+can_edit = st.session_state.get("is_owner", False)
 # === PAGE 1: HOME ===
 if page == "🏡 Home & Inspiration":
     c_top1, c_top2, c_top3 = st.columns([3.5, 1, 1])
