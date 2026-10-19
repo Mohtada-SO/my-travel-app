@@ -115,7 +115,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # === SECTION 2: DATA & HELPER FUNCTIONS ===
-DATA_FILE = "travel_atlas_v5.json"
+DATA_FILE = st.secrets.get("DATA_FILE", "travel_atlas_final.json")
 SOU_LAT, SOU_LON = 50.9097, -1.4044
 
 def calc_distance_km(lat1, lon1, lat2, lon2):
