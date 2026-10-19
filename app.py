@@ -2,7 +2,7 @@ import streamlit as st
 import folium
 from streamlit_folium import st_folium
 import json
-import os
+import os, base64
 import math
 import requests
 from datetime import datetime, time, timedelta, date
