@@ -344,7 +344,7 @@ with st.sidebar:
     st.divider()
     if pin_set and not st.session_state.is_owner:
         u_pin = st.text_input("🔒 Visitor Mode (Enter Owner PIN to Edit):", type="password")
-        if u_pin == data["owner_pin"]: st.session_state.is_owner = True; st.rerun()
+       if u_pin == secret_pin: st.session_state.is_owner = True; st.rerun()
     else:
         st.caption("🔓 **Owner Mode Active** (Full Edit Enabled)")
 
