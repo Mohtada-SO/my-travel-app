@@ -1,0 +1,278 @@
+{
+  "owner_pin": "",
+  "uk_airports": [
+    {
+      "name": "Bournemouth (BOH)",
+      "transit_gbp": 8.0,
+      "info": "45m (Train + Bus)"
+    },
+    {
+      "name": "Southampton (SOU)",
+      "transit_gbp": 5.5,
+      "info": "10m (Direct Train)"
+    },
+    {
+      "name": "Bristol (BRS) ⭐",
+      "transit_gbp": 24.0,
+      "info": "1h 45m (Train + Flyer)"
+    },
+    {
+      "name": "London Gatwick (LGW)",
+      "transit_gbp": 26.0,
+      "info": "2h (Direct Train/Coach)"
+    },
+    {
+      "name": "London Luton / Stansted",
+      "transit_gbp": 38.0,
+      "info": "3h (Train + Coach)"
+    },
+    {
+      "name": "Birmingham (BHX)",
+      "transit_gbp": 32.0,
+      "info": "2h 30m (Direct Train)"
+    }
+  ],
+  "places": [
+    {
+      "id": 1,
+      "name": "Durdle Door & Lulworth Cove",
+      "region": "Dorset, England",
+      "scope": "UK",
+      "category": "Coastal Walk",
+      "community_tag": "Jurassic Coast Trust / SW Coast Path",
+      "status": "wishlist",
+      "lat": 50.6212,
+      "lon": -2.2768,
+      "distance_km": 69,
+      "rating": 5,
+      "paid_gbp": 16.2,
+      "saved_gbp": 8.5,
+      "saving_hack": "SWR Railcard Return to Wool + £2 Morebus Cap",
+      "dep_time": "09:00",
+      "transit_mins": 85,
+      "activity_hours": 4.0,
+      "last_return": "17:15",
+      "last_transit_note": "Morebus 30 to Wool Station ends early in autumn/winter!",
+      "payment_rule": "Contactless OK (Tap Off on exit!)",
+      "ticket_info": "Free beach & cliff path access",
+      "highlights": "Limestone sea arch, Stair Hole folded rocks, Lulworth Cove",
+      "notes": "Train from Southampton Central to Wool, then Morebus 30.",
+      "source_link": "https://www.alltrails.com/en-gb/trail/england/dorset/durdle-door-and-lulworth-cove",
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/64/Durdle_Door_Overview.jpg/1024px-Durdle_Door_Overview.jpg",
+      "checkpoints": [
+        {
+          "task": "Train Southampton -> Wool Station",
+          "done": false
+        },
+        {
+          "task": "Morebus 30 to Durdle Door",
+          "done": false
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "South Downs Way (Hassocks to Lewes)",
+      "region": "East Sussex, England",
+      "scope": "UK",
+      "category": "Linear Hike (17 km)",
+      "community_tag": "National Trust (Ditchling Beacon)",
+      "status": "wishlist",
+      "lat": 50.9086,
+      "lon": -0.1072,
+      "distance_km": 92,
+      "rating": 5,
+      "paid_gbp": 20.7,
+      "saved_gbp": 18.0,
+      "saving_hack": "Off-Peak Return to Lewes + short Single (Brighton-Hassocks)",
+      "dep_time": "08:30",
+      "transit_mins": 132,
+      "activity_hours": 4.5,
+      "last_return": "21:02",
+      "last_transit_note": "Sunset ~18:05! Last direct Brighton->Southampton train at 21:02",
+      "payment_rule": "Railcard on App | Emergency Breeze Bus 79 at Beacon (£2 Card)",
+      "ticket_info": "Free National Trail - Bring 2L water (no shops on ridge)",
+      "highlights": "Jack & Jill Windmills, Ditchling Beacon 360° summit, Lewes Castle",
+      "notes": "Station-to-station linear hike across the South Downs chalk ridge.",
+      "source_link": "https://www.alltrails.com/en-gb/trail/england/west-sussex/hassocks-to-lewes",
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/South_Downs_Way_near_Ditchling_Beacon.jpg/1024px-South_Downs_Way_near_Ditchling_Beacon.jpg",
+      "checkpoints": [
+        {
+          "task": "08:30 train to Hassocks (Exit Platform 2)",
+          "done": false
+        },
+        {
+          "task": "Climb Jack & Jill Windmills to Ditchling Beacon",
+          "done": false
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Shaftesbury & Gold Hill",
+      "region": "Dorset, England",
+      "scope": "UK",
+      "category": "Historic Hilltop Town",
+      "community_tag": "English Heritage / Dorset AONB",
+      "status": "visited",
+      "lat": 51.0045,
+      "lon": -2.1983,
+      "distance_km": 68,
+      "rating": 5,
+      "paid_gbp": 14.5,
+      "saved_gbp": 12.0,
+      "saving_hack": "Railcard 1/3 off to Gillingham + £2 Bus Cap",
+      "dep_time": "09:30",
+      "transit_mins": 95,
+      "activity_hours": 3.5,
+      "last_return": "17:38",
+      "last_transit_note": "Last bus (X2/B3) to Gillingham Station at 17:38!",
+      "payment_rule": "Contactless / Apple Pay accepted on bus",
+      "ticket_info": "Free 24/7 access to Gold Hill",
+      "highlights": "Iconic cobbled Gold Hill street, Blackmore Vale panoramic views",
+      "notes": "Train to Gillingham (Dorset) then local bus.",
+      "source_link": "",
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Gold_Hill%2C_Shaftesbury.jpg/1024px-Gold_Hill%2C_Shaftesbury.jpg",
+      "checkpoints": [
+        {
+          "task": "Train to Gillingham & Bus to Shaftesbury",
+          "done": true
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Bath (Roman Baths & Royal Crescent)",
+      "region": "Somerset, England",
+      "scope": "UK",
+      "category": "Historic Heritage City",
+      "community_tag": "UNESCO World Heritage / National Trust Skyline",
+      "status": "wishlist",
+      "lat": 51.3811,
+      "lon": -2.359,
+      "distance_km": 84,
+      "rating": 5,
+      "paid_gbp": 19.8,
+      "saved_gbp": 10.0,
+      "saving_hack": "Direct GWR Train from Southampton Central with Railcard (1h 25m - No changes!)",
+      "dep_time": "09:10",
+      "transit_mins": 85,
+      "activity_hours": 5.5,
+      "last_return": "22:20",
+      "last_transit_note": "Direct GWR trains back to Southampton run hourly until ~22:20 from Bath Spa!",
+      "payment_rule": "Contactless OK everywhere | Show Railcard on GWR train",
+      "ticket_info": "City & Pulteney Bridge free | Roman Baths: Book student ticket online",
+      "highlights": "Roman Baths, Royal Crescent, Pulteney Bridge, National Trust Bath Skyline walk",
+      "notes": "Super easy direct train day-trip from Southampton Central.",
+      "source_link": "https://www.nationaltrust.org.uk/visit/bath-bristol/bath-skyline",
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Pulteney_Bridge_Bath.jpg/1024px-Pulteney_Bridge_Bath.jpg",
+      "checkpoints": [
+        {
+          "task": "Direct GWR train Southampton -> Bath Spa",
+          "done": false
+        },
+        {
+          "task": "Walk Pulteney Bridge & Royal Crescent",
+          "done": false
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Girona / Costa Brava (Extreme Day Trip)",
+      "region": "Spain",
+      "scope": "Europe",
+      "category": "Extreme Day Trip (EDT)",
+      "community_tag": "Ryanair Cheap Escape",
+      "status": "wishlist",
+      "lat": 41.9794,
+      "lon": 2.8214,
+      "distance_km": 1050,
+      "rating": 5,
+      "paid_gbp": 29.0,
+      "saved_gbp": 45.0,
+      "saving_hack": "£18 Return Flight from Bournemouth (BOH) - No hotel needed!",
+      "dep_time": "06:30",
+      "transit_mins": 120,
+      "activity_hours": 9.0,
+      "last_return": "21:45",
+      "last_transit_note": "Airport Bus to Girona Centre takes 20 mins (€2.75)",
+      "payment_rule": "Contactless OK on Girona buses; validate paper rail tickets!",
+      "ticket_info": "Medieval walls walk is free!",
+      "highlights": "Game of Thrones medieval streets, Onyar River houses, Spanish tapas",
+      "notes": "Direct cheap flight from Bournemouth Airport.",
+      "source_link": "",
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Cases_de_l%27Onyar_%28Girona%29.jpg/1024px-Cases_de_l%27Onyar_%28Girona%29.jpg",
+      "checkpoints": [
+        {
+          "task": "Bus/Train to Bournemouth Airport (BOH)",
+          "done": false
+        }
+      ]
+    },
+    {
+      "name": "Tryfan & Llyn Idwal (Snowdonia)",
+      "region": "North Wales, UK",
+      "scope": "UK",
+      "category": "Linear Hike / Nature",
+      "community_tag": "National Trust / Eryri National Park",
+      "status": "wishlist",
+      "lat": 53.1235,
+      "lon": -4.0128,
+      "distance_km": 360,
+      "rating": 5,
+      "paid_gbp": 45.0,
+      "saved_gbp": 25.0,
+      "saving_hack": "Advance train booking to Bangor (Gwynedd) with Railcard + T10 / Sherpa bus into Ogwen Cottage",
+      "dep_time": "06:30",
+      "transit_mins": 270,
+      "activity_hours": 6.0,
+      "last_return": "18:45",
+      "last_transit_note": "TrawsCymru T10 bus from Ogwen Cottage back to Bangor station ends early evening",
+      "payment_rule": "Contactless on Welsh buses (Sherpa/TrawsCymru)",
+      "ticket_info": "Free public access; proper mountain boots and waterproof layers essential",
+      "highlights": "Glacial cirque at Llyn Idwal, dramatic scrambling on Tryfan ridge, and panoramic Ogwen Valley views",
+      "notes": "Classic Snowdonia mountain route. Best tackled over a weekend stay in Bangor or Betws-y-Coed rather than a single day trip from Southampton.",
+      "source_link": "https://www.nationaltrust.org.uk/visit/wales/carneddau-and-glyderau/llyn-idwal-walk",
+      "image_url": "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1000&q=80",
+      "checkpoints": [
+        {
+          "task": "Train from Southampton Central to Bangor via Chester / Birmingham",
+          "done": false
+        },
+        {
+          "task": "Take Sherpa/T10 bus from Bangor to Ogwen Cottage trailhead",
+          "done": false
+        },
+        {
+          "task": "Follow the trail around Llyn Idwal towards the Glyderau ridge",
+          "done": false
+        }
+      ],
+      "id": 1792810502
+    }
+  ],
+  "expenses": [
+    {
+      "date": "2026-10-16",
+      "trip": "Shaftesbury",
+      "item": "Train to Gillingham",
+      "amount_gbp": 10.5,
+      "category": "Transit"
+    },
+    {
+      "date": "2026-10-16",
+      "trip": "Shaftesbury",
+      "item": "Return Bus X2",
+      "amount_gbp": 4.0,
+      "category": "Transit"
+    }
+  ],
+  "schengen_trips": [
+    {
+      "country": "Italy (Milan)",
+      "start": "2026-06-10",
+      "end": "2026-06-16"
+    }
+  ]
+}
